@@ -1,0 +1,56 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Browse Tool Tests</title></head><body>
+<pre id="log">RUNNING...</pre>
+<script>
+var L=document.getElementById('log');
+var R={};
+function log(k,v){R[k]=v;var s='';for(var x in R)s+=x+': '+R[x]+'\n';L.textContent=s;}
+log('T0_SYNC','OK');
+var delays=[1000,3000,5000,10000,15000,30000];
+var names=['T1_1s','T2_3s','T3_5s','T4_10s','T5_15s','T6_30s'];
+for(var i=0;i<delays.length;i++){
+(function(n,d){setTimeout(function(){log(n,'OK_at_'+d+'ms')},d)})(names[i],delays[i]);
+}
+(async function(){
+try{
+await new Promise(function(r){setTimeout(r,2000)});
+log('T7_AWAIT','OK_2s');
+}catch(e){log('T7_AWAIT','ERR:'+e.message)}
+})();
+(async function(){
+try{
+var r=await fetch('https://xgw.vercel.app/api/g?a=pi&k=SP-245160398-583936008-288686775-394105150&_t='+Math.floor(Date.now()/1000));
+var t=await r.text();
+log('T8_FETCH_GW','OK:'+t.substring(0,60));
+}catch(e){log('T8_FETCH_GW','ERR:'+e.message)}
+})();
+(async function(){
+try{
+var r=await fetch('https://httpbin.org/get');
+var t=await r.text();
+log('T9_FETCH_CORS','OK:'+t.substring(0,60));
+}catch(e){log('T9_FETCH_CORS','ERR:'+e.message)}
+})();
+(async function(){
+var out=[];
+for(var i=0;i<3;i++){
+try{
+var r=await fetch('https://xgw.vercel.app/api/g?a=pi&k=SP-245160398-583936008-288686775-394105150&_t='+Math.floor(Date.now()/1000));
+await r.text();
+out.push('R'+i+':OK');
+}catch(e){out.push('R'+i+':ERR')}
+}
+log('T10_SEQ_FETCH',out.join('|'));
+})();
+var img=new Image();
+img.onload=function(){log('T11_IMG','LOAD')};
+img.onerror=function(){log('T11_IMG','ERROR_BUT_FIRED')};
+img.src='https://xgw.vercel.app/api/g?a=pi&k=SP-245160398-583936008-288686775-394105150&_t='+Math.floor(Date.now()/1000);
+try{
+var xhr=new XMLHttpRequest();
+xhr.open('GET','https://xgw.vercel.app/api/g?a=pi&k=SP-245160398-583936008-288686775-394105150&_t='+Math.floor(Date.now()/1000),false);
+xhr.send();
+log('T12_XHR_SYNC','OK:'+xhr.status+':'+xhr.responseText.substring(0,40));
+}catch(e){log('T12_XHR_SYNC','ERR:'+e.message)}
+setTimeout(function(){log('DONE','ALL_TESTS_COMPLETE')},35000);
+</script>
+</body></html>
